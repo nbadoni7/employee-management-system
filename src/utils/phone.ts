@@ -1,0 +1,1 @@
+export const sgPhoneRegex = /^(?:\+65\s?)?(?:[689]\d{7})$/;
