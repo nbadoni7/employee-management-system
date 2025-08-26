@@ -52,6 +52,7 @@ export default function EmployeeForm({
   return (
     <Box
       component="form"
+      data-testid="employee-form"
       onChangeCapture={() => {
         if (!submitting) onDirty?.();
       }}
@@ -67,6 +68,7 @@ export default function EmployeeForm({
               <TextField
                 {...field}
                 label="First Name"
+                slotProps={{ htmlInput: { "data-testid": "first-name" } }}
                 error={!!errors.first_name}
                 helperText={errors.first_name?.message}
               />
@@ -81,6 +83,7 @@ export default function EmployeeForm({
               <TextField
                 {...field}
                 label="Last Name"
+                slotProps={{ htmlInput: { "data-testid": "last-name" } }}
                 error={!!errors.last_name}
                 helperText={errors.last_name?.message}
               />
@@ -96,6 +99,7 @@ export default function EmployeeForm({
               <TextField
                 {...field}
                 label="Email"
+                slotProps={{ htmlInput: { "data-testid": "email" } }}
                 error={!!errors.email_address}
                 helperText={errors.email_address?.message}
               />
@@ -110,6 +114,7 @@ export default function EmployeeForm({
               <TextField
                 {...field}
                 label="Phone (+65…)"
+                slotProps={{ htmlInput: { "data-testid": "phone" } }}
                 error={!!errors.phone_number}
                 helperText={errors.phone_number?.message}
               />
@@ -122,16 +127,18 @@ export default function EmployeeForm({
             name="gender"
             control={control}
             render={({ field }) => (
-              <RadioGroup row {...field}>
+              <RadioGroup row {...field} data-testid="gender-group">
                 <FormControlLabel
                   value="Male"
                   control={<Radio />}
                   label="Male"
+                  data-testid="gender-male"
                 />
                 <FormControlLabel
                   value="Female"
                   control={<Radio />}
                   label="Female"
+                  data-testid="gender-female"
                 />
               </RadioGroup>
             )}
@@ -154,6 +161,9 @@ export default function EmployeeForm({
                 onChange={(v) => field.onChange(v)}
                 slotProps={{
                   textField: {
+                    inputProps: {
+                      'data-testid': 'dob',
+                    },
                     error: !!errors.date_of_birth,
                     helperText: errors.date_of_birth?.message,
                   },
@@ -174,6 +184,9 @@ export default function EmployeeForm({
                 onChange={(v) => field.onChange(v)}
                 slotProps={{
                   textField: {
+                    inputProps: {
+                      'data-testid': 'joined',
+                    },
                     error: !!errors.joined_date,
                     helperText: errors.joined_date?.message,
                   },
@@ -185,18 +198,19 @@ export default function EmployeeForm({
 
         {apiError && (
           <Grid size={{ xs: 12 }}>
-            <Alert severity="error">{apiError}</Alert>
+            <Alert severity="error" data-testid="api-error">{apiError}</Alert>
           </Grid>
         )}
 
         <Grid size={{ xs: 12 }}>
           <Stack direction="row" spacing={2}>
-            <Button type="submit" disabled={submitting}>
+            <Button name="submit" type="submit" disabled={submitting} data-testid="submit">
               {submitting ? "Saving…" : "Submit"}
             </Button>
             <Button
               type="button"
               variant="outlined"
+              data-testid="reset"
               onClick={() => reset(initialValues)}
             >
               Reset

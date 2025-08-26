@@ -11,7 +11,6 @@ export default function useUnsavedChangesPrompt(
       (e: BeforeUnloadEvent) => {
         if (!when) return;
         e.preventDefault();
-        e.returnValue = "";
       },
       [when]
     )

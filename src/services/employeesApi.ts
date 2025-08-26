@@ -14,9 +14,9 @@ export const employeesApi = createApi({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Employee' as const, id })),
-              { type: 'Employees' as const, id: 'LIST' }
-            ]
+            ...result.map(({ id }) => ({ type: 'Employee' as const, id })),
+            { type: 'Employees' as const, id: 'LIST' }
+          ]
           : [{ type: 'Employees' as const, id: 'LIST' }]
     }),
     getEmployee: builder.query<Employee, string>({

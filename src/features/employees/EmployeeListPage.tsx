@@ -44,7 +44,7 @@ export default function EmployeeListPage() {
   }, [location, navigate]);
 
   return (
-    <Container sx={{ py: 3 }}>
+    <Container sx={{ py: 3 }} data-testid="employee-list-page">
       <EmployeeTable
         rows={data}
         onAdd={() => navigate("/employee/add")}
@@ -64,8 +64,10 @@ export default function EmployeeListPage() {
         open={!!snack}
         autoHideDuration={3000}
         onClose={() => setSnack(null)}
+        data-testid="snackbar"
       >
         <Alert
+          data-testid="snackbar-alert"
           severity={
             delState.isError || error || snackSeverity == "error"
               ? "error"
@@ -76,9 +78,9 @@ export default function EmployeeListPage() {
         </Alert>
       </Snackbar>
 
-      {isFetching && <div aria-label="loading">Loading…</div>}
+      {isFetching && <div aria-label="loading" data-testid="loading">Loading…</div>}
       {error && (
-        <Alert sx={{ mt: 2 }} severity="error">
+        <Alert sx={{ mt: 2 }} severity="error" data-testid="load-error">
           Failed to load. Try refresh.
         </Alert>
       )}

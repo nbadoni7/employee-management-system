@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogContentText,
   DialogActions, Button
@@ -13,12 +12,12 @@ interface Props {
 }
 export default function ConfirmDialog({ open, title, text, onCancel, onConfirm }: Props) {
   return (
-    <Dialog open={open} onClose={onCancel}>
+    <Dialog open={open} onClose={onCancel} data-testid="confirm-dialog">
       <DialogTitle>{title}</DialogTitle>
       <DialogContent><DialogContentText>{text}</DialogContentText></DialogContent>
       <DialogActions>
-        <Button variant="outlined" onClick={onCancel}>Cancel</Button>
-        <Button onClick={onConfirm}>OK</Button>
+        <Button variant="outlined" onClick={onCancel} data-testid="confirm-cancel">Cancel</Button>
+        <Button onClick={onConfirm} data-testid="confirm-ok">OK</Button>
       </DialogActions>
     </Dialog>
   );

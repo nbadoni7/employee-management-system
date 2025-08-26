@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, IconButton, Stack, Button
@@ -16,9 +15,9 @@ interface Props {
 
 export default function EmployeeTable({ rows, onAdd, onEdit, onDelete }: Props) {
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} data-testid="employee-table">
       <Stack direction="row" justifyContent="flex-end">
-        <Button onClick={onAdd}>Add Employee</Button>
+        <Button onClick={onAdd} data-testid="add-employee">Add Employee</Button>
       </Stack>
       <TableContainer component={Paper}>
         <Table size="small" aria-label="employees">
@@ -29,8 +28,8 @@ export default function EmployeeTable({ rows, onAdd, onEdit, onDelete }: Props) 
               <TableCell>Email</TableCell>
               <TableCell>Phone</TableCell>
               <TableCell>Gender</TableCell>
-              <TableCell>DOB</TableCell>
-              <TableCell>Joined</TableCell>
+              <TableCell>DOB (MM/DD/YYYY)</TableCell>
+              <TableCell>Joined (MM/DD/YYYY)</TableCell>
               <TableCell width={120} align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -42,13 +41,21 @@ export default function EmployeeTable({ rows, onAdd, onEdit, onDelete }: Props) 
                 <TableCell>{r.email_address}</TableCell>
                 <TableCell>{r.phone_number}</TableCell>
                 <TableCell>{r.gender}</TableCell>
-                <TableCell>{new Date(r.date_of_birth).toLocaleDateString()}</TableCell>
-                <TableCell>{new Date(r.joined_date).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(r.date_of_birth as any).toLocaleDateString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  year: "numeric",
+                })}</TableCell>
+                <TableCell>{new Date(r.joined_date as any).toLocaleDateString("en-US", {
+                  month: "2-digit",
+                  day: "2-digit",
+                  year: "numeric",
+                })}</TableCell>
                 <TableCell align="right">
-                  <IconButton size="small" onClick={() => onEdit(r.id)} aria-label={`edit-${r.id}`}>
+                  <IconButton size="small" onClick={() => onEdit(r.id)} data-testid={`edit-${r.id}`} aria-label={`edit-${r.id}`}>
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton size="small" color="error" onClick={() => onDelete(r.id)} aria-label={`delete-${r.id}`}>
+                  <IconButton size="small" color="error" onClick={() => onDelete(r.id)} data-testid={`delete-${r.id}`} aria-label={`delete-${r.id}`}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </TableCell>
