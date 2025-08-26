@@ -6,7 +6,7 @@ export default function App() {
     <>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6">Employee Management</Typography>
+          <Typography variant="h6">Employee Management System</Typography>
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ py: 3 }}>
