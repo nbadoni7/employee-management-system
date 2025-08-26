@@ -13,8 +13,9 @@ _A compact React app prepared for the interview review. This README is tailored 
 ---
 
 ## Tech Stack
-- **React 18** (Vite tooling)
+- **React 18.x** (Vite tooling)
 - **TypeScript**
+- **Material UI 7.x**
 - **Redux Toolkit** + **RTK Query**
 - **Zod** (form validation)
 - **Jest** + **@testing-library/react** (unit/integration tests)
