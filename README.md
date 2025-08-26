@@ -13,7 +13,7 @@ _A compact React app prepared for the interview review. This README is tailored 
 ---
 
 ## Tech Stack
-- **React 18.x** (Vite tooling)
+- **React 18.x**
 - **TypeScript**
 - **Material UI 7.x**
 - **Redux Toolkit** + **RTK Query**
