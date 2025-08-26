@@ -1,6 +1,6 @@
 # Employee Management System
 
-_A compact React app prepared for the GIC interview review. This README is tailored for evaluators to run, review, and test the project locally or directly in CodeSandbox._
+_A compact React app prepared for the interview review. This README is tailored for evaluators to run, review, and test the project locally or directly in CodeSandbox._
 
 ---
 
@@ -224,7 +224,7 @@ employee-management-system/
 
 ---
 
-## Notes for GIC Reviewers
+## Notes for the Reviewers
 - The project demonstrates a clean RTK Query data flow with cache invalidation on write operations and corresponding test coverage.
 - The CodeSandbox workspace is preconfigured to reduce setup time—open `dev` (Preview on 5173) and `test` tasks to validate functionality and tests quickly.
 
