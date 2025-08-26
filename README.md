@@ -59,7 +59,8 @@ npm test -- --coverage
 2. In the left sidebar, open **“CODESANDBOX: DEVTOOLS.”**
 3. Under **Tasks**:
    - Click **`dev`** → this starts the Vite dev server.
-   - Click **`test`** → this runs the Jest test runner.
+   - Click **`test`** → this runs the Jest test runner 
+   - **Note**: This task works only in Devbox workspaces (not in the default Sandbox). To execute tests, either convert your workspace to Devbox or run them locally.
 4. Under **Previews**, choose **`5173  dev`** to open the running app in a new tab/pane.
 
 > The screenshot in the submission shows **Tasks → dev (Running…)** and **Previews → 5173 dev**. Tests can be started/stopped independently via the **`test`** task.
