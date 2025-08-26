@@ -1,5 +1,5 @@
 import React from "react";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -113,6 +113,34 @@ function setupEditMode(opts?: {
     return { updateFn };
 }
 
+// Helper: for MUI X DatePicker, aria-invalid is on the wrapper (role="group")
+const pickerGroup = (testId: string) =>
+    screen.getByTestId(testId).closest('[role="group"]') as HTMLElement;
+
+/** Type a date into MUI X DatePicker’s segmented inputs (MM/DD/YYYY). */
+async function typePickerDate(testId: string, yyyy: string, mm: string, dd: string) {
+    const group = pickerGroup(testId);
+    const month = within(group).getByRole("spinbutton", { name: /month/i });
+    const day = within(group).getByRole("spinbutton", { name: /day/i });
+    const year = within(group).getByRole("spinbutton", { name: /year/i });
+
+    // Focus each segment and type the value
+    await userEvent.click(month);
+    await userEvent.clear(month);       // works on contenteditable segments
+    await userEvent.type(month, mm);
+
+    await userEvent.click(day);
+    await userEvent.clear(day);
+    await userEvent.type(day, dd);
+
+    await userEvent.click(year);
+    await userEvent.clear(year);
+    await userEvent.type(year, yyyy);
+
+    // blur to commit
+    await userEvent.tab();
+}
+
 afterEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReset();
@@ -207,5 +235,111 @@ describe("EmployeeFormPage (integration, real components)", () => {
         // The last call should have enabled === true
         const [enabled /*, onConfirm*/] = calls[calls.length - 1];
         expect(enabled).toBe(true);
+    });
+
+    test("Required fields block submit and flag inputs", async () => {
+        const { createFn } = setupAddMode();
+        renderWithProviders(<EmployeeFormPage />);
+
+        // Submit without typing anything
+        const form = screen.getByTestId("employee-form");
+        await act(async () => {
+            fireEvent.submit(form);
+            await Promise.resolve();
+        });
+
+        // Mutation not called
+        expect(createFn).not.toHaveBeenCalled();
+
+        // Inputs should be marked invalid per zod resolver
+        expect(screen.getByTestId("first-name")).toHaveAttribute("aria-invalid", "true");
+        expect(screen.getByTestId("last-name")).toHaveAttribute("aria-invalid", "true");
+        expect(screen.getByTestId("email")).toHaveAttribute("aria-invalid", "true");
+        expect(screen.getByTestId("phone")).toHaveAttribute("aria-invalid", "true");
+        // Date pickers: aria-invalid is on the wrapper (role="group"), not the hidden input
+        expect(pickerGroup("dob")).toHaveAttribute("aria-invalid", "true");
+        expect(pickerGroup("joined")).toHaveAttribute("aria-invalid", "true");
+    });
+
+    test("Invalid email blocks submit and shows error state", async () => {
+        const { createFn } = setupAddMode();
+        renderWithProviders(<EmployeeFormPage />);
+
+        // Fill other fields with valid data
+        await userEvent.clear(screen.getByTestId("first-name"));
+        await userEvent.type(screen.getByTestId("first-name"), "Alice");
+        await userEvent.clear(screen.getByTestId("last-name"));
+        await userEvent.type(screen.getByTestId("last-name"), "Anderson");
+        await userEvent.clear(screen.getByTestId("phone"));
+        await userEvent.type(screen.getByTestId("phone"), "91234567");
+        // valid dates (YYYY-MM-DD in the input)
+        await typePickerDate("dob", "1990", "05", "12");
+        await typePickerDate("joined", "2020", "08", "01");
+
+        // Email invalid
+        await userEvent.clear(screen.getByTestId("email"));
+        await userEvent.type(screen.getByTestId("email"), "not-an-email");
+
+        const form = screen.getByTestId("employee-form");
+        await act(async () => {
+            fireEvent.submit(form);
+            await Promise.resolve();
+        });
+
+        expect(createFn).not.toHaveBeenCalled();
+        expect(screen.getByTestId("email")).toHaveAttribute("aria-invalid", "true");
+    });
+
+    test("Invalid Singapore phone blocks submit and shows error state", async () => {
+        const { createFn } = setupAddMode();
+        renderWithProviders(<EmployeeFormPage />);
+
+        // Fill everything valid except phone
+        await userEvent.type(screen.getByTestId("first-name"), "Bob");
+        await userEvent.type(screen.getByTestId("last-name"), "Builder");
+        await userEvent.type(screen.getByTestId("email"), "bob@example.com");
+        // valid dates (YYYY-MM-DD in the input)
+        await typePickerDate("dob", "1991", "01", "02");
+        await typePickerDate("joined", "2022", "03", "04");
+
+        // Bad SG phone (must start with 6/8/9 and be 8 digits)
+        await userEvent.clear(screen.getByTestId("phone"));
+        await userEvent.type(screen.getByTestId("phone"), "7123456"); // too short + bad prefix
+
+        const form = screen.getByTestId("employee-form");
+        await act(async () => {
+            fireEvent.submit(form);
+            await Promise.resolve();
+        });
+
+        expect(createFn).not.toHaveBeenCalled();
+        expect(screen.getByTestId("phone")).toHaveAttribute("aria-invalid", "true");
+    });
+
+    test("Joined date earlier than date of birth blocks submit (cross-field rule)", async () => {
+        const { createFn } = setupAddMode();
+        renderWithProviders(<EmployeeFormPage />);
+
+        await userEvent.type(screen.getByTestId("first-name"), "Carol");
+        await userEvent.type(screen.getByTestId("last-name"), "Cross");
+        await userEvent.type(screen.getByTestId("email"), "carol@example.com");
+        await userEvent.type(screen.getByTestId("phone"), "91234567");
+        // Intentionally violate: joined date before dob
+        await typePickerDate("dob", "2020", "08", "01");
+        await typePickerDate("joined", "2010", "02", "04");
+
+        const form = screen.getByTestId("employee-form");
+        await act(async () => {
+            fireEvent.submit(form);
+            await Promise.resolve();
+        });
+
+        expect(createFn).not.toHaveBeenCalled();
+        // Either date could be flagged depending on how the zod refinement is applied;
+        // assert that at least one of them is invalid.
+        // Date pickers: aria-invalid is on the wrapper (role="group"), not the hidden input
+        const dobInvalid = pickerGroup("dob").getAttribute("aria-invalid") === "true";
+        const joinedInvalid = pickerGroup("joined").getAttribute("aria-invalid") === "true";
+        expect(dobInvalid || joinedInvalid).toBe(true);
     });
 });

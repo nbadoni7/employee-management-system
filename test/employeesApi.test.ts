@@ -4,6 +4,7 @@ import { employeesApi } from "../src/services/employeesApi";
 // Some libs expect these in Node/JSDOM
 import { TextEncoder, TextDecoder } from "util";
 import dayjs from "dayjs";
+import { IEmployee } from "../src/features/employees/types";
 if (!(global as any).TextEncoder) (global as any).TextEncoder = TextEncoder as any;
 if (!(global as any).TextDecoder) (global as any).TextDecoder = TextDecoder as any;
 
@@ -15,19 +16,8 @@ if (typeof (global as any).Response === "undefined") {
 }
 
 /** --------- Fixtures used by the fetch mock --------- */
-type Row = {
-    id: string;
-    first_name: string;
-    last_name: string;
-    email_address: string;
-    phone_number: string;
-    gender: "Male" | "Female";
-    date_of_birth?: string | null;
-    joined_date?: string | null;
-};
-
-let listResponse: Row[] = [];
-let getByIdResponse: Record<string, Row | undefined> = {};
+let listResponse: IEmployee[] = [];
+let getByIdResponse: Record<string, IEmployee | undefined> = {};
 
 type HttpCall = { path: string; method: string; body?: any };
 let callLog: HttpCall[] = [];
@@ -128,12 +118,12 @@ beforeEach(() => {
         const id = matchItemPath(path);
         if (id) {
             if (method === "GET") {
-                const row = getByIdResponse[id];
-                return mkRes(row ? 200 : 404, row ?? { message: "Not found" });
+                const IEmployee = getByIdResponse[id];
+                return mkRes(IEmployee ? 200 : 404, IEmployee ?? { message: "Not found" });
             }
             if (method === "PUT") {
-                const existing = getByIdResponse[id] as Row | undefined;
-                const updated: Row = { ...(existing ?? { id }), ...(bodyParsed as any), id };
+                const existing = getByIdResponse[id] as IEmployee | undefined;
+                const updated: IEmployee = { ...(existing ?? { id }), ...(bodyParsed as any), id };
                 getByIdResponse[id] = updated;
                 listResponse = listResponse.map((r) => (r.id === id ? updated : r));
                 return mkRes(200, updated);
@@ -148,7 +138,7 @@ beforeEach(() => {
 
         // POST list
         if (isListPath(path) && method === "POST") {
-            const created: Row = { id: "new-id", ...(bodyParsed as any) };
+            const created: IEmployee = { id: "new-id", ...(bodyParsed as any) };
             listResponse = [...listResponse, created];
             getByIdResponse[created.id] = created;
             return mkRes(201, created);
@@ -189,8 +179,8 @@ describe("employeesApi (RTK Query)", () => {
                 email_address: "ada@example.com",
                 phone_number: "91234567",
                 gender: "Female",
-                date_of_birth: "1990-05-12T00:00:00.000Z",
-                joined_date: "2020-08-01T00:00:00.000Z",
+                date_of_birth: dayjs("1990-05-12"),
+                joined_date: dayjs("2020-08-01"),
             },
             {
                 id: "2",
@@ -199,8 +189,8 @@ describe("employeesApi (RTK Query)", () => {
                 email_address: "alan@example.com",
                 phone_number: "92345678",
                 gender: "Male",
-                date_of_birth: "1985-01-03T00:00:00.000Z",
-                joined_date: "2010-02-04T00:00:00.000Z",
+                date_of_birth: dayjs("1985-01-03"),
+                joined_date: dayjs("2010-02-04"),
             },
         ];
         getByIdResponse = Object.fromEntries(listResponse.map((r) => [r.id, r]));
@@ -263,18 +253,18 @@ describe("employeesApi (RTK Query)", () => {
     });
 
     test("getEmployee: fetches by id", async () => {
-        const row: Row = {
+        const IEmployee: IEmployee = {
             id: "42",
             first_name: "Grace",
             last_name: "Hopper",
             email_address: "grace@example.com",
             phone_number: "93456789",
             gender: "Female",
-            date_of_birth: "1980-12-09T00:00:00.000Z",
-            joined_date: "2005-05-06T00:00:00.000Z",
+            date_of_birth: dayjs("1985-01-03"),
+            joined_date: dayjs("2010-02-04"),
         };
-        listResponse = [row];
-        getByIdResponse[row.id] = row;
+        listResponse = [IEmployee];
+        getByIdResponse[IEmployee.id] = IEmployee;
 
         const store = makeStore();
         const sub = store.dispatch(employeesApi.endpoints.getEmployee.initiate("42"));
@@ -290,16 +280,16 @@ describe("employeesApi (RTK Query)", () => {
         sub.unsubscribe();
     });
 
-    test("addEmployee: POST creates row and invalidates LIST (causing list refetch)", async () => {
-        const base: Row = {
+    test("addEmployee: POST creates IEmployee and invalidates LIST (causing list refetch)", async () => {
+        const base: IEmployee = {
             id: "1",
             first_name: "Ada",
             last_name: "L",
             email_address: "a@e.co",
             phone_number: "9",
             gender: "Female",
-            date_of_birth: "1990-05-12T00:00:00.000Z",
-            joined_date: "2020-08-01T00:00:00.000Z",
+            date_of_birth: dayjs("1985-01-03"),
+            joined_date: dayjs("2010-02-04"),
         };
         listResponse = [base];
         getByIdResponse[base.id] = base;
@@ -338,7 +328,7 @@ describe("employeesApi (RTK Query)", () => {
         expect(lastCall.method).toBe("GET");
         expectListCall(lastCall);
 
-        // selector shows 2 rows
+        // selector shows 2 IEmployees
         const state = store.getState();
         const sel = employeesApi.endpoints.getEmployees.select()(state as any);
         expect(sel?.data?.length).toBe(2);
@@ -346,19 +336,19 @@ describe("employeesApi (RTK Query)", () => {
         subList.unsubscribe();
     });
 
-    test("updateEmployee: PUT updates row and invalidates that ID (causing getEmployee(id) refetch)", async () => {
-        const row: Row = {
+    test("updateEmployee: PUT updates IEmployee and invalidates that ID (causing getEmployee(id) refetch)", async () => {
+        const IEmployee: IEmployee = {
             id: "7",
             first_name: "Linus",
             last_name: "T",
             email_address: "linus@example.com",
             phone_number: "9",
             gender: "Male",
-            date_of_birth: "1990-05-12T00:00:00.000Z",
-            joined_date: "2020-08-01T00:00:00.000Z",
+            date_of_birth: dayjs("1985-01-03"),
+            joined_date: dayjs("2010-02-04"),
         };
-        listResponse = [row];
-        getByIdResponse[row.id] = row;
+        listResponse = [IEmployee];
+        getByIdResponse[IEmployee.id] = IEmployee;
 
         const store = makeStore();
 
@@ -387,13 +377,13 @@ describe("employeesApi (RTK Query)", () => {
         subOne.unsubscribe();
     });
 
-    test("deleteEmployee: DELETE removes row and invalidates LIST (causing list refetch)", async () => {
-        const rows: Row[] = [
+    test("deleteEmployee: DELETE removes IEmployee and invalidates LIST (causing list refetch)", async () => {
+        const IEmployees: IEmployee[] = [
             { id: "1", first_name: "A", last_name: "L", email_address: "a@e.co", phone_number: "9", gender: "Female" } as any,
             { id: "2", first_name: "B", last_name: "T", email_address: "b@e.co", phone_number: "9", gender: "Male" } as any,
         ];
-        listResponse = rows.slice();
-        getByIdResponse = Object.fromEntries(rows.map((r) => [r.id, r]));
+        listResponse = IEmployees.slice();
+        getByIdResponse = Object.fromEntries(IEmployees.map((r) => [r.id, r]));
 
         const store = makeStore();
 
