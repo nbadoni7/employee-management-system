@@ -16,9 +16,8 @@ _A compact React app prepared for the GIC interview review. This README is tailo
 - **React 18** (Vite tooling)
 - **TypeScript**
 - **Redux Toolkit** + **RTK Query**
-- **Axios** (HTTP)
 - **Jest** + **@testing-library/react** (unit/integration tests)
-- **Vite** for dev/build/preview
+- **Vite** for dev/test
 
 > Package scripts use **npm**.
 
